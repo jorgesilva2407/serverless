@@ -1,0 +1,10 @@
+apiVersion: v1
+data:
+  REDIS_OUTPUT_KEY: jorgesilva-proj3-output
+kind: ConfigMap
+metadata:
+  creationTimestamp: "2025-01-14T20:51:35Z"
+  name: outputkey
+  namespace: default
+  resourceVersion: "625"
+  uid: 82b3ab4b-3f13-4542-a529-a3402ace580f
