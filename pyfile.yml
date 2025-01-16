@@ -1,111 +1,60 @@
 apiVersion: v1
 data:
   pyfile: |
-    import json
-    import redis
     from typing import Any
-    from dataclasses import dataclass
 
 
-    @dataclass
-    class SystemInfo:
-        timestamp: str
-        cpu_freq_current: float
-        cpu_percent: list[float]
-        cpu_stats_ctx_switches: int
-        cpu_stats_interrupts: int
-        cpu_stats_soft_interrupts: int
-        cpu_stats_syscalls: int
-        n_pids: int
-        virtual_memory_total: int
-        virtual_memory_available: int
-        virtual_memory_percent: float
-        virtual_memory_used: int
-        virtual_memory_free: int
-        virtual_memory_active: int
-        virtual_memory_inactive: int
-        virtual_memory_buffers: int
-        virtual_memory_cached: int
-        virtual_memory_shared: int
-        virtual_memory_slab: int
-        net_io_counters_eth0_bytes_sent: int
-        net_io_counters_eth0_bytes_recv: int
-        net_io_counters_eth0_packets_sent: int
-        net_io_counters_eth0_packets_recv: int
-        net_io_counters_eth0_errin: int
-        net_io_counters_eth0_errout: int
-        net_io_counters_eth0_dropin: int
-        net_io_counters_eth0_dropout: int
+    def handler(input: dict, context: object) -> dict[str, Any]:
+        # Retrieve environment state
+        env = context.env
+        if "cpu_moving_avg" not in env:
+            env["cpu_moving_avg"] = {}
 
+        # Extract CPUs
+        cpu_keys = [key for key in input.keys() if key.startswith("cpu_percent-")]
 
-    def handler(event: dict, context: object) -> dict[str, Any]:
-        # Extract system info from the event
-        try:
-            system_info = SystemInfo(**event["metrics"])
-        except KeyError:
-            raise ValueError("Invalid input: 'metrics' key is missing from event.")
+        # Initialize moving averages if not present
+        for cpu_key in cpu_keys:
+            if cpu_key not in env["cpu_moving_avg"]:
+                env["cpu_moving_avg"][cpu_key] = []
 
-        # Compute percentage of outgoing traffic bytes
-        total_bytes = (
-            system_info.net_io_counters_eth0_bytes_sent
-            + system_info.net_io_counters_eth0_bytes_recv
-        )
-        percent_network_egress = (
-            (system_info.net_io_counters_eth0_bytes_sent / total_bytes) * 100
-            if total_bytes > 0
-            else 0
-        )
+        # Update moving averages
+        for cpu_key in cpu_keys:
+            env["cpu_moving_avg"][cpu_key].append(input[cpu_key])
+            if len(env["cpu_moving_avg"][cpu_key]) > 60:
+                env["cpu_moving_avg"][cpu_key].pop(0)
 
-        # Compute percentage of memory caching content
-        total_memory = (
-            system_info.virtual_memory_cached + system_info.virtual_memory_buffers
-        )
-        percent_memory_caching = (
-            (total_memory / system_info.virtual_memory_total) * 100
-            if system_info.virtual_memory_total > 0
-            else 0
-        )
-
-        # Compute moving average utilization of each CPU over the last minute
-        cpu_count = len(system_info.cpu_percent)
-        cpu_avg_utilization = []
-
-        if not hasattr(context, "env"):
-            context.env = {}
-
-        for i in range(cpu_count):
-            key = f"avg_util_cpu{i}_60sec"
-            prev_avg = context.env.get(key, 0)
-            new_avg = (prev_avg * 59 + system_info.cpu_percent[i]) / 60
-            context.env[key] = new_avg
-            cpu_avg_utilization.append(new_avg)
-
-        # Prepare the result dictionary
-        result = {
-            "percent_network_egress": percent_network_egress,
-            "percent_memory_caching": percent_memory_caching,
+        # Calculate moving averages
+        moving_averages = {
+            f"avg-util-{cpu_key}-60sec": sum(env["cpu_moving_avg"][cpu_key])
+            / len(env["cpu_moving_avg"][cpu_key])
+            for cpu_key in cpu_keys
         }
-        for i in range(cpu_count):
-            result[f"avg_util_cpu{i}_60sec"] = cpu_avg_utilization[i]
 
-        # Store the result in Redis
-        redis_host = context.host
-        redis_port = context.port
-        output_key = context.output_key
+        # Calculate memory caching percentage
+        memory_cached = input.get("virtual_memory-cached", 0)
+        memory_buffers = input.get("virtual_memory-buffers", 0)
+        memory_total = input.get("virtual_memory-total", 1)  # Avoid division by zero
+        percent_memory_cache = (memory_cached + memory_buffers) / memory_total * 100
 
-        try:
-            redis_client = redis.StrictRedis(
-                host=redis_host, port=redis_port, decode_responses=True
-            )
-            redis_client.set(output_key, json.dumps(result))
-        except redis.ConnectionError as e:
-            raise RuntimeError(f"Failed to connect to Redis: {e}")
+        # Calculate outgoing traffic percentage
+        bytes_sent = input.get("net_io_counters_eth0-bytes_sent1", 0)
+        bytes_recv = input.get("net_io_counters_eth0-bytes_recv1", 0)
+        total_bytes = bytes_sent + bytes_recv
+        percent_network_egress = (bytes_sent / total_bytes * 100) if total_bytes > 0 else 0
 
-        return result
+        # Prepare output
+        output = {
+            "percent-memory-caching": percent_memory_cache,
+            "percent-network-egress": percent_network_egress,
+        }
+        output.update(moving_averages)
+
+        return output
 kind: ConfigMap
 metadata:
-  creationTimestamp: "2025-01-14T20:48:59Z"
+  creationTimestamp: "2025-01-16T20:52:49Z"
   name: pyfile
   namespace: default
-  resourceVersion: "497"
-  uid: a629dd50-0485-4ca7-8229-df540c90559a
+  resourceVersion: "988"
+  uid: 9758b640-73fa-476a-8f8a-b7ce22882fe8
