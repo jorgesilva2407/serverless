@@ -53,8 +53,8 @@ data:
         return output
 kind: ConfigMap
 metadata:
-  creationTimestamp: "2025-01-16T20:52:49Z"
+  creationTimestamp: "2025-01-16T21:01:51Z"
   name: pyfile
-  namespace: default
-  resourceVersion: "988"
-  uid: 9758b640-73fa-476a-8f8a-b7ce22882fe8
+  namespace: jorgesilva
+  resourceVersion: "1421"
+  uid: 0bd6c9d3-b015-4264-ae22-84139882a89e

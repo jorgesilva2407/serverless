@@ -3,8 +3,8 @@ data:
   REDIS_OUTPUT_KEY: jorgesilva-proj3-output
 kind: ConfigMap
 metadata:
-  creationTimestamp: "2025-01-16T20:53:25Z"
+  creationTimestamp: "2025-01-16T21:02:21Z"
   name: outputkey
-  namespace: default
-  resourceVersion: "1013"
-  uid: 67ec70ac-9b4e-4ef7-92c6-8deb3dc99a0b
+  namespace: jorgesilva
+  resourceVersion: "1447"
+  uid: 67310d7c-0a84-4a44-8929-29093bd7fb47
