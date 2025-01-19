@@ -12,4 +12,5 @@ spec:
     - protocol: TCP
       port: 8050
       targetPort: 8050
+      hostPort: 8050
   type: ClusterIP
