@@ -12,5 +12,5 @@ spec:
     - protocol: TCP
       port: 8050
       targetPort: 8050
-      nodePort: 65535
+      nodePort: 52200
   type: NodePort
