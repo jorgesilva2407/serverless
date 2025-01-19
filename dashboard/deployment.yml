@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jorgesilva-dashboard
+  labels:
+    app: jorgesilva-dashboard
+  namespace: jorgesilva
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jorgesilva-dashboard
+  template:
+    metadata:
+      labels:
+        app: jorgesilva-dashboard
+    spec:
+      containers:
+        - name: dashboard
+          image: silvajorge/dashboard:latest
+          ports:
+            - containerPort: 8050

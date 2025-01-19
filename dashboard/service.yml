@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: jorgesilva-dashboard-service
+  namespace: jorgesilva
+  labels:
+    app: jorgesilva-dashboard
+spec:
+  selector:
+    app: jorgesilva-dashboard
+  ports:
+    - protocol: TCP
+      port: 8050
+      targetPort: 8050
+  type: ClusterIP
