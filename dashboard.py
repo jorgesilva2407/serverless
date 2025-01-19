@@ -6,7 +6,7 @@ import json
 import plotly.graph_objs as go
 
 # Redis configuration
-REDIS_HOST = "localhost"  # Change to your Redis host
+REDIS_HOST = "192.168.121.187"  # Change to your Redis host
 REDIS_PORT = 6379  # Change to your Redis port
 REDIS_KEY = "jorgesilva-proj3-output"
 
