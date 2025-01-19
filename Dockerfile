@@ -8,4 +8,6 @@ RUN pip install -r /app/requirements.txt
 
 COPY dashboard.py /app/dashboard.py
 
+EXPOSE 8050
+
 CMD ["python", "/app/dashboard.py"]
