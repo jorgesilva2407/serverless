@@ -1,0 +1,10 @@
+apiVersion: v1
+data:
+  REDIS_OUTPUT_KEY: igorcosta-proj3-output
+kind: ConfigMap
+metadata:
+  creationTimestamp: "2025-01-16T21:02:21Z"
+  name: outputkey
+  namespace: igorcosta 
+  resourceVersion: "1447"
+  uid: 67310d7c-0a84-4a44-8929-29093bd7fb47
